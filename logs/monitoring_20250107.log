@@ -1,5 +1,0 @@
-2025-01-07 11:22:29,450 - INFO - Connected (version 2.0, client OpenSSH_8.7)
-2025-01-07 11:22:29,567 - INFO - Authentication (publickey) successful!
-2025-01-07 11:22:30,499 - WARNING - [wazuh-bore] Resource usage warning: Memory, Disk exceeded threshold
-2025-01-07 11:22:30,534 - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
-2025-01-07 11:22:30,736 - INFO - Authentication (password) successful!
