@@ -1,4 +1,3 @@
-[정보]
 다수의 서버들의 Daily 점검(시스템 자원 모니터링)을 위한 GUI 프로그램
 
 # 실행 환경
@@ -18,29 +17,29 @@ main.py : 서버 접속 및 점검 실행
 [세팅 및 실행 방법]
 
 # 가상환경 생성
-'''
+```
 python -m venv venv
-'''
+```
 
 # 가상환경 활성화
-'''
+```
 venv\Scripts\activate  # Windows
-'''
+```
 # 또는
-'''
+```
 source venv/bin/activate  # Linux/Mac
-'''
+```
 
 # 패키지 설치
-'''
+```
 pip install -r requirements.txt
-'''
+```
 ※ 외부망 차단 환경인 경우 : 다운로드한 패키지들을 로컬에서 설치
-'''
+```
 pip install --no-index --find-links packages -r requirements.txt
-'''
+```
 
 # 실행
-'''
+```
 python main.py
-'''
+```

@@ -1,2 +1,4 @@
 servers.yaml
 venv/
+logs/*
+results/*
