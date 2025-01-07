@@ -1,0 +1,22 @@
+=== System Monitoring at 2025-01-07 11:22:32 ===
+Server: wazuh-server (wazuh.n-e.kr)
+CPU Usage: 0.8%
+Memory Usage: 76.94%
+Disk Usage: 4%
+Load Average: 0.03 0.03 0.00
+Uptime: up 1 week, 26 minutes
+
+=== Additional Checks ===
+alerts_count: 946
+agent_count: 1
+
+
+=== Service Status ===
+wazuh-manager:
+  Status: active
+  Process Count: 0
+filebeat:
+  Status: active
+  Process Count: 1
+==================================================
+

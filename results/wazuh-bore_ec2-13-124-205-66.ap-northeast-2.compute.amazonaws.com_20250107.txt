@@ -1,0 +1,22 @@
+=== System Monitoring at 2025-01-07 11:22:30 ===
+Server: wazuh-bore (ec2-13-124-205-66.ap-northeast-2.compute.amazonaws.com)
+CPU Usage: 0.0%
+Memory Usage: 16.99%
+Disk Usage: 24%
+Load Average: 0.00 0.00 0.00
+Uptime: up 2 weeks, 3 days, 21 hours, 34 minutes
+
+=== Additional Checks ===
+bore_connections: 3
+
+
+=== Service Status ===
+bore:
+  Status: active
+  Process Count: 1
+
+!!! WARNINGS !!!
+Memory usage exceeds threshold!
+Disk usage exceeds threshold!
+==================================================
+

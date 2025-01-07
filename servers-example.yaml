@@ -1,0 +1,51 @@
+# servers.yaml
+default_settings:
+  logs_dir: "logs"  # 기본 로그 저장 경로
+  results_dir: "results"  # 결과파일 저장 경로
+  port: 22      # SSH 기본 port 대신 다른 port 사용중인 경우 servers에 해당 서버 정보에 별도로 port 입력
+  thresholds:   # 공통 임계치 기준
+    cpu: 80     # CPU 사용률 기준치 초과시 경고
+    memory: 85  # 메모리 사용률 기준치 초과시 경고
+    disk: 90    # 디스크 사용률 기준치 초과시 경고
+    # loadavg_warning: 0.7  # CPU 코어당 70%
+    # loadavg_critical: 0.9 # CPU 코어당 90%
+
+servers:
+  # - name: "web-server-1"
+  #   ip: "192.168.1.100"
+  #   username: "admin1"
+  #   password: "password1"
+
+  - name: "test server"
+    ip: "ec2-11-222-333-44.ap-northeast-2.compute.amazonaws.com"
+    username: "ec2-user"
+    key_filename: "c:/test-key.pem"
+    thresholds:  # 서버별 임계값 설정
+      cpu: 10
+      memory: 10
+      disk: 10
+    services:
+      - name: "bore"
+        type: "systemctl"
+    commands:
+      bore_connections: "netstat -ant | grep :7835 | wc -l"
+
+  - name: "abc-server"
+    ip: "abc.n-e.kr"
+    username: "abc"
+    password: "abc123456789"
+    port: 8222
+    services:
+      - name: "wazuh-manager"
+        type: "systemctl"
+      - name: "filebeat"
+        type: "systemctl"
+    commands:
+      alerts_count: "find /var/ossec/logs/alerts -type f -mtime -1 -exec cat {} \\; | wc -l"
+      agent_count: "/var/ossec/bin/agent_control -l | grep 'ID:' | wc -l"
+
+  # - name: "app-server-1"
+  #   ip: "192.168.1.102"
+  #   username: "admin3"
+  #   password: "password3"
+    # 기본 설정 사용
