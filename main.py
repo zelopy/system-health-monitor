@@ -36,25 +36,37 @@ class MonitoringThread(QThread):
     def stop(self):
         """모니터링 중지"""
         self.is_running = False
-        self.close_connections()
+        self.close_connections(timeout=5)
         
-    def close_connections(self):
+    def close_connections(self, timeout=None):
         """모든 SSH 연결 종료"""
-        for ssh in self.ssh_connections.values():
+        for server_name, ssh in list(self.ssh_connections.items()):
             try:
-                ssh.close()
-            except:
-                pass
-        self.ssh_connections.clear()
+                self.logger.info(f'Closing ssh connection {server_name}')
+                if timeout:
+                    ssh.close(timeout=timeout)
+                else:
+                    ssh.close()
+                del self.ssh_connections[server_name]
+            except paramiko.SSHException as e:
+                self.logger.error(f'SSH Connection error : {str(e)}')
+            except Exception as e:
+                self.logger.error(f'Unknown error : {str(e)}')
 
     def run(self):
         """모니터링 실행"""
         try:
-            for server in self.server_config['servers']:
+            # 오늘 날짜 폴더 생성
+            today_dir = os.path.join(self.results_dir, datetime.now().strftime('%Y%m%d'))
+            os.makedirs(today_dir, exist_ok=True)
+            
+            for idx, server in enumerate(self.server_config['servers'], start=1):
                 if not self.is_running:
                     break
-                    
-                self.progress_signal.emit(f"서버 {server['name']} 점검 중...")
+                
+                self.logger.info(f'-----------------------------------------------')
+                self.logger.info(f'[ {idx} ] START ::: Checking server {server['name']}')
+                self.progress_signal.emit(f"서버 {server['name']} 점검중...")
                 results = self.monitor_server(server)
                 if results:
                     self.current_server_name = server['name']  # 현재 서버 이름 저장
@@ -144,9 +156,12 @@ class MonitoringThread(QThread):
             # 결과 파일 생성
             today = datetime.now().strftime('%Y%m%d')
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            today_dir = os.path.join(self.results_dir, today)
+            
             output_file = os.path.join(
-                self.results_dir,
-                f"{server['name']}_{server['ip']}_{today}.txt"
+                today_dir,
+                f"{server['name']}_{server['ip']}.txt"
             )
             
             with open(output_file, 'a', encoding='utf-8') as f:
@@ -196,15 +211,15 @@ class MonitoringThread(QThread):
                             f"[{server['name']}] Resource usage warning: "
                             f"{', '.join(exceeded)} exceeded threshold"
                         )
-                except:
-                    pass
-                    
+                except Exception as e:
+                    self.logger.error(f"Error checking thresholds for server {server['name']}: {str(e)}")
+                
+                self.logger.info(f'END ::: Checking server {server['name']}')
                 f.write("=" * 50 + "\n\n")
-
             return results
 
         except Exception as e:
-            error_msg = f"서버 {server['name']} 모니터링 오류: {str(e)}"
+            error_msg = f"{server['name']} monitoring error: {str(e)}"
             self.error_signal.emit(error_msg)
             self.logger.error(error_msg)
             return None
@@ -215,6 +230,7 @@ class ServerMonitorGUI(QMainWindow):
         super().__init__()
         self.monitoring_thread = None
         self.server_results = {}  # 서버별 결과 저장
+        self.logger = logging.getLogger(__name__)
         self.initUI()
         self.load_config()
 
@@ -327,7 +343,10 @@ class ServerMonitorGUI(QMainWindow):
         """모니터링 중지"""
         if self.monitoring_thread and self.monitoring_thread.isRunning():
             self.monitoring_thread.stop()
-            self.monitoring_thread.wait()
+            if not self.monitoring_thread.wait(msecs=5000):  # 5초 timeout
+                self.logger.warning("모니터링 스레드 강제 종료")
+                self.monitoring_thread.terminate()  # 강제 종료
+            self.monitoring_thread = None  # GC 수행되도록
             self.update_progress("모니터링 중지됨")
 
     def update_progress(self, message):
@@ -476,8 +495,18 @@ class ServerMonitorGUI(QMainWindow):
 
     def closeEvent(self, event):
         """프로그램 종료 시 처리"""
-        self.stop_monitoring()
-        event.accept()
+        try:
+            self.stop_monitoring()
+            # 추가 정리 작업
+            if hasattr(self, 'logger'):
+                handlers = self.logger.handlers[:]
+                for handler in handlers:
+                    handler.close()
+                    self.logger.removeHandler(handler)
+        except Exception as e:
+            self.logger.info(f'Close event error : {str(e)}')
+        finally:
+            event.accept()
 
 
 if __name__ == '__main__':
